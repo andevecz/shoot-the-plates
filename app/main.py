@@ -53,6 +53,7 @@ iterator = 0
 
 add_ball = True
 ball_list = []
+ball_deletion_list = []
 score = 0
 
 round = 1
@@ -60,9 +61,17 @@ ball_counter = 1
 
 life = 10
 
+deltha_time = 0
+
+# SPRITE VARIABLES
+sprite_iterator = 200
+sprite_position_size = []
+
 set_config_flags(ConfigFlags.FLAG_WINDOW_RESIZABLE)
 
 init_window(0, 0, APPLICATION_NAME)
+sprites = load_texture("sprites/plates/sprites.png")
+
 set_exit_key(KeyboardKey.KEY_NULL)
 INIT_SCREEN_WIDTH = get_screen_width()
 INIT_SCREEN_HEIGHT = get_screen_height()
@@ -89,6 +98,10 @@ while not window_should_close():
 
     menu_size = text_size_multiplier * 3
     warning_size = text_size_multiplier * 2
+
+    window_time = get_time()
+    window_fps = get_fps()
+    current_frame = window_time * window_fps
 
     if screen == TITLE_SCREEN:
         title_x = center_text_x(TITLE, title_size, screen_width)
@@ -147,11 +160,14 @@ while not window_should_close():
         
         if add_ball:
             circle_random_X_position = random.randint(screen_width//8, screen_width*7//8)
-            circle_random_radius = random.randint(20, 30)
-            circle_random_color = random.choice((BLUE,RED,GREEN,YELLOW))
+            circle_random_diameter = random.randint(80, 160)
             circle_random_speed = random.randint(circle_speed_min, circle_speed_max)
             circle_initial_speed = circle_random_speed
-            ball_list.append([circle_random_X_position, screen_height, circle_random_radius, circle_random_color, circle_random_speed, circle_initial_speed])
+            circle_sprite = [0, 0, 200, 200]
+            frame_death_moment = 0
+            circle_color = [255,255,255,255]
+
+            ball_list.append([circle_random_X_position, screen_height, circle_random_diameter, circle_random_speed, circle_initial_speed, circle_sprite, frame_death_moment, circle_color])
             
             if ball_counter % round:
                 ball_counter += 1
@@ -160,18 +176,30 @@ while not window_should_close():
                 add_ball = False
         
         for index, ball in enumerate(ball_list):
-            draw_circle(ball[0], ball[1], ball[2], ball[3])
-            ball[1] = int(ball[1] - ball[4])
-            ball[4] -= GRAVITY
+            draw_texture_pro(sprites, ball[5], [ball[0], ball[1],ball[2],ball[2]],[ball[2]//2,ball[2]//2],0,ball[7])
+            ball[1] = int(ball[1] - ball[3])
+            ball[3] -= GRAVITY
 
             if ball[1] == screen_height:
                 life -= 1
-            # if ball[1] >= screen_height:
-                ball[4] = ball[5]
+                ball[3] = ball[4]
             
             if check_collision_point_circle(mouse_position,(ball[0],ball[1]),ball[2]) and is_mouse_button_pressed(MouseButton.MOUSE_BUTTON_LEFT):
                 score+=1
+                ball[6] = current_frame - 1
+                ball_deletion_list.append(ball_list[index])
                 del ball_list[index]
+        
+        for index, ball in enumerate(ball_deletion_list):
+            draw_texture_pro(sprites, ball[5], [ball[0], ball[1], ball[2], ball[2]], [ball[2]//2,ball[2]//2],0,ball[7])
+            deltha_time = int(current_frame - ball[6])
+            if (not deltha_time % 5) and ball[5][0] < 400:
+                ball[5][0]+=sprite_iterator
+            if ball[5][0] == 400:
+                deltha_time = 0
+                ball[7][3] -= 10
+                if ball[7][3] <= 0:
+                    del ball_deletion_list[index]
         
         if not ball_list:
             if round != MAX_BALLS:
@@ -222,6 +250,7 @@ while not window_should_close():
                 if is_mouse_button_pressed(MouseButton.MOUSE_BUTTON_LEFT):
                     add_ball = True
                     ball_list = []
+                    ball_deletion_list = []
                     score = 0
                     round = 1
                     ball_counter = 1
