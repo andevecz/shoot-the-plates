@@ -13,6 +13,12 @@ def fullscreen_mode():
             set_window_size(INIT_SCREEN_WIDTH, INIT_SCREEN_HEIGHT)
         toggle_fullscreen()
 
+def draw_heart(heart_list: list, screen_width : int, screen_height : int):
+    i = 0
+    for heart in heart_list:
+        draw_texture(heart, screen_width//10 + i, screen_height//10, WHITE)
+        i+=45
+
 # SCREEN OPTIONS
 TITLE_SCREEN = 0
 GAME_SCREEN = 1
@@ -62,7 +68,7 @@ score = 0
 round = 1
 ball_counter = 1
 
-life = 10
+life = 5
 
 deltha_time = 0
 
@@ -75,6 +81,9 @@ set_config_flags(ConfigFlags.FLAG_WINDOW_RESIZABLE)
 init_window(0, 0, APPLICATION_NAME)
 init_audio_device()
 sprites = load_texture("sprites/plates/sprites.png")
+heart = load_texture("sprites/heart/heart.png")
+golden_heart = load_texture("sprites/heart/golden_heart.png")
+life_list = [heart for _ in range(5)]
 breaking_sound_1 = load_sound("sound/1.wav")
 breaking_sound_2 = load_sound("sound/2.wav")
 
@@ -153,14 +162,15 @@ while not window_should_close():
     
     if screen == GAME_SCREEN:
         score_string = f"Score: {score}"
-        life_string = f"Life: {life}"
+        #life_string = f"Life: {life}"
         score_x = center_text_x(score_string, warning_size, screen_width)
 
         begin_drawing()
         clear_background(RAYWHITE)
         
         draw_text(score_string, score_x, screen_height//10, warning_size, BLACK)
-        draw_text(life_string, screen_width//10, screen_height//10, warning_size, BLACK)
+        for heart in life_list:
+            draw_heart(life_list, screen_width, screen_height)
         circle_speed_min = 8 if is_window_fullscreen() else 6
         circle_speed_max = 12 if is_window_fullscreen() else 10
         golden_plate_speed = 14 if is_window_fullscreen() else 12
@@ -207,18 +217,29 @@ while not window_should_close():
             ball[3] -= GRAVITY
 
             if ball[10] == True and ball[1] >= screen_height:
-                life -= 1
+                life -= 2
+                life_list.pop()
+                if len(life_list) > 1:
+                    life_list.pop()
                 del ball_list[index]
 
             if ball[1] == screen_height:
                 life -= 1
+                life_list.pop()
                 ball[3] = ball[4]
             
             if check_collision_point_circle(mouse_position,(ball[0],ball[1]),ball[2]//2) and is_mouse_button_pressed(MouseButton.MOUSE_BUTTON_LEFT):
-                score+=5 if ball[10] else 1
+                if ball[10]:
+                    score+=5
+                    play_sound(breaking_sound_2)
+                    life+=1
+                    life_list.append(golden_heart)
+                    golden_plate = True
+                else:
+                    score+=1
+                    play_sound(breaking_sound_1)
                 ball[6] = current_frame - 1
                 ball_deletion_list.append(ball_list[index])
-                play_sound(breaking_sound_2) if ball[10] else play_sound(breaking_sound_1)
                 del ball_list[index]
         
         for index, ball in enumerate(ball_deletion_list):
@@ -285,13 +306,13 @@ while not window_should_close():
                     score = 0
                     round = 1
                     ball_counter = 1
-                    life = 10
+                    life = 5
+                    life_list = [heart for _ in range(5)]
                     screen = TITLE_SCREEN
         else:
             set_mouse_cursor(MouseCursor.MOUSE_CURSOR_DEFAULT)
 
         end_drawing()
-    
 
     if screen == WIN_SCREEN:
         begin_drawing()
@@ -305,12 +326,13 @@ while not window_should_close():
         if is_key_pressed(KeyboardKey.KEY_ESCAPE):
             add_ball = True
             ball_list = []
+            ball_deletion_list = []
             score = 0
             round = 1
             ball_counter = 1
-            life = 10
+            life = 5
+            life_list = [heart for _ in range(5)]
             screen = TITLE_SCREEN
-
         end_drawing()
 
     if screen == LOST_SCREEN:
@@ -328,12 +350,13 @@ while not window_should_close():
         if is_key_pressed(KeyboardKey.KEY_ESCAPE):
             add_ball = True
             ball_list = []
+            ball_deletion_list = []
             score = 0
             round = 1
             ball_counter = 1
-            life = 10
+            life = 5
+            life_list = [heart for _ in range(5)]
             screen = TITLE_SCREEN
-
         end_drawing()
 close_audio_device()
 close_window()
