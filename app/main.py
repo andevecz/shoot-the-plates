@@ -19,11 +19,14 @@ GAME_SCREEN = 1
 PAUSE_SCREEN = 2
 WIN_SCREEN = 3
 LOST_SCREEN = 4
+OPTIONS_SCREEN = 5
 
 screen = TITLE_SCREEN
 
 GRAVITY = 0.08
 MAX_BALLS = 3
+enable_plate_rotation = False
+enable_golden_plate = True
 
 # TITLE
 APPLICATION_NAME = "Shoot The Plates"
@@ -70,7 +73,10 @@ sprite_position_size = []
 set_config_flags(ConfigFlags.FLAG_WINDOW_RESIZABLE)
 
 init_window(0, 0, APPLICATION_NAME)
+init_audio_device()
 sprites = load_texture("sprites/plates/sprites.png")
+breaking_sound_1 = load_sound("sound/1.wav")
+breaking_sound_2 = load_sound("sound/2.wav")
 
 set_exit_key(KeyboardKey.KEY_NULL)
 INIT_SCREEN_WIDTH = get_screen_width()
@@ -157,17 +163,36 @@ while not window_should_close():
         draw_text(life_string, screen_width//10, screen_height//10, warning_size, BLACK)
         circle_speed_min = 8 if is_window_fullscreen() else 6
         circle_speed_max = 12 if is_window_fullscreen() else 10
+        golden_plate_speed = 14 if is_window_fullscreen() else 12
         
         if add_ball:
+            if enable_golden_plate:
+                golden_plate = True if random.randint(0,5) == 5 else False
+            else:
+                golden_plate = False
+
             circle_random_X_position = random.randint(screen_width//8, screen_width*7//8)
-            circle_random_diameter = random.randint(80, 160)
-            circle_random_speed = random.randint(circle_speed_min, circle_speed_max)
+            circle_random_diameter = 50 if golden_plate else random.randint(80, 160)
+            circle_random_speed = golden_plate_speed if golden_plate else random.randint(circle_speed_min, circle_speed_max)
             circle_initial_speed = circle_random_speed
             circle_sprite = [0, 0, 200, 200]
             frame_death_moment = 0
-            circle_color = [255,255,255,255]
+            circle_color = [253, 249, 0, 255] if golden_plate else [255,255,255,255]
+            circle_rotation = 0
+            circle_random_rotation = random.randint(4,6) if enable_plate_rotation else 0
 
-            ball_list.append([circle_random_X_position, screen_height, circle_random_diameter, circle_random_speed, circle_initial_speed, circle_sprite, frame_death_moment, circle_color])
+
+            ball_list.append([circle_random_X_position, 
+                              screen_height, 
+                              circle_random_diameter, 
+                              circle_random_speed, 
+                              circle_initial_speed, 
+                              circle_sprite, 
+                              frame_death_moment, 
+                              circle_color,
+                              circle_random_rotation,
+                              circle_rotation,
+                              golden_plate])
             
             if ball_counter % round:
                 ball_counter += 1
@@ -176,18 +201,24 @@ while not window_should_close():
                 add_ball = False
         
         for index, ball in enumerate(ball_list):
-            draw_texture_pro(sprites, ball[5], [ball[0], ball[1],ball[2],ball[2]],[ball[2]//2,ball[2]//2],0,ball[7])
+            draw_texture_pro(sprites, ball[5], [ball[0], ball[1],ball[2],ball[2]],[ball[2]//2,ball[2]//2],ball[9],ball[7])
+            ball[9]+=ball[8]
             ball[1] = int(ball[1] - ball[3])
             ball[3] -= GRAVITY
+
+            if ball[10] == True and ball[1] >= screen_height:
+                life -= 1
+                del ball_list[index]
 
             if ball[1] == screen_height:
                 life -= 1
                 ball[3] = ball[4]
             
-            if check_collision_point_circle(mouse_position,(ball[0],ball[1]),ball[2]) and is_mouse_button_pressed(MouseButton.MOUSE_BUTTON_LEFT):
-                score+=1
+            if check_collision_point_circle(mouse_position,(ball[0],ball[1]),ball[2]//2) and is_mouse_button_pressed(MouseButton.MOUSE_BUTTON_LEFT):
+                score+=5 if ball[10] else 1
                 ball[6] = current_frame - 1
                 ball_deletion_list.append(ball_list[index])
+                play_sound(breaking_sound_2) if ball[10] else play_sound(breaking_sound_1)
                 del ball_list[index]
         
         for index, ball in enumerate(ball_deletion_list):
@@ -304,4 +335,5 @@ while not window_should_close():
             screen = TITLE_SCREEN
 
         end_drawing()
+close_audio_device()
 close_window()
