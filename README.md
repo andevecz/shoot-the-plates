@@ -17,10 +17,8 @@
 <img src="screenshots/win.png">
 <p align="center"><i>Winning screen</i></p>
 
-### <p>If you can't do that, you will loose.</p>
+### <p>But it might not be as easy as it sounds.</p>
 
 <br>
 <img src="screenshots/lost.png">
 <p align="center"><i>Lost screen</i></p>
-
-### <i>PS: The screenshots of the game are temporarily without any sprites, as that is the state of the game in the moment.</i>

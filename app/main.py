@@ -138,10 +138,13 @@ golden_heart = load_texture("sprites/heart/golden_heart.png")
 truth_symbol = load_texture("sprites/options/true.png")
 life_list = [heart for _ in range(5)]
 audio_button = load_texture("sprites/options/square_sprite.png")
+# aim = load_texture("sprites/aim/aim.png")
 
 breaking_sound_1 = load_sound("sound/breaking_glass/1.wav")
 breaking_sound_2 = load_sound("sound/breaking_glass/2.wav")
 pop_sound = load_sound("sound/heart_pop/pop.wav")
+# shot = load_sound("sound/shot/shot.wav")
+# set_sound_volume(shot, 0.5)
 
 music_1 = load_music_stream("music/killing_time.mp3")
 set_music_volume(music_1, 1.0)
@@ -330,6 +333,7 @@ while not window_should_close():
             set_sound_volume(breaking_sound_1, volume_effects/500)
             set_sound_volume(breaking_sound_2, volume_effects/500)
             set_sound_volume(pop_sound, volume_effects/500)
+            # set_sound_volume(shot, volume_effects/500)
 
             set_music_volume(music_1,volume_music/500)
 
@@ -403,6 +407,7 @@ while not window_should_close():
             screen = TITLE_SCREEN
 
     if screen == GAME_SCREEN:
+        set_mouse_cursor(MouseCursor.MOUSE_CURSOR_CROSSHAIR)
         score_string = f"Score: {score}"
         score_x = center_text_x(score_string, warning_size, screen_width)
 
@@ -500,6 +505,9 @@ while not window_should_close():
 
         end_drawing()
 
+        # if is_mouse_button_pressed(MouseButton.MOUSE_BUTTON_LEFT):
+        #     play_sound(shot)
+
         if is_key_pressed(KeyboardKey.KEY_ESCAPE):
             screen = PAUSE_SCREEN
 
@@ -508,6 +516,8 @@ while not window_should_close():
         
         if score >= 100:
             screen = WIN_SCREEN
+    else:
+        set_mouse_cursor(MouseCursor.MOUSE_CURSOR_DEFAULT)
 
     if screen == PAUSE_SCREEN:
         begin_drawing()
