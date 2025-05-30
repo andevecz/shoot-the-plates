@@ -509,15 +509,16 @@ while not window_should_close():
         #     play_sound(shot)
 
         if is_key_pressed(KeyboardKey.KEY_ESCAPE):
+            set_mouse_cursor(MouseCursor.MOUSE_CURSOR_DEFAULT)
             screen = PAUSE_SCREEN
 
         if not life_list:
+            set_mouse_cursor(MouseCursor.MOUSE_CURSOR_DEFAULT)
             screen = LOST_SCREEN
         
         if score >= 100:
+            set_mouse_cursor(MouseCursor.MOUSE_CURSOR_DEFAULT)
             screen = WIN_SCREEN
-    else:
-        set_mouse_cursor(MouseCursor.MOUSE_CURSOR_DEFAULT)
 
     if screen == PAUSE_SCREEN:
         begin_drawing()
